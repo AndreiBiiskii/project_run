@@ -1,9 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import viewsets
-
-from app_run.models import Run
-from app_run.serializers import AthleteSerializer
+from app_run.serializers import *
 from project_run.settings import base
 
 
@@ -20,3 +18,18 @@ def company_details(request):
 class AthleteAPIView(viewsets.ModelViewSet):
     queryset = Run.objects.all()
     serializer_class = AthleteSerializer
+
+
+class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.exclude(is_superuser=True)
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        qs = self.queryset
+        user_by_type = self.request.query_params.get('type', None)
+        if user_by_type is not None:
+            if user_by_type == 'coach':
+                qs = qs.filter(is_staff=True)
+            if user_by_type == 'athlete':
+                qs = qs.filter(is_staff=False)
+        return qs
