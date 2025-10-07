@@ -16,6 +16,7 @@ Including another URLconf
 """
 from pprint import pprint
 
+import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -30,4 +31,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('api/users/', UsersByTypeAPIView.as_view({'get': 'list'})),
+path('__debug__/', include(debug_toolbar.urls)),
 ]
+

@@ -4,10 +4,10 @@ from rest_framework import serializers
 from app_run.models import Run
 
 
-class AthleteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Run
-        fields = '__all__'
+# class AthleteSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Run
+#         fields = ['id', 'athlete__first_name', 'create_at', 'comment']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -24,3 +24,11 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.is_staff:
             text = 'coach'
         return text
+
+
+class AthleteSerializer(serializers.ModelSerializer):
+    at = UserSerializer(read_only=True, source='athlete')
+
+    class Meta:
+        model = Run
+        fields = ['id', 'at',  'create_at', 'comment']
