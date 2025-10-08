@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from app_run.serializers import *
 from project_run.settings import base
 
@@ -23,6 +23,8 @@ class AthleteAPIView(viewsets.ModelViewSet):
 class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.exclude(is_superuser=True)
     serializer_class = UserSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['first_name', 'last_name']
 
     def get_queryset(self):
         qs = self.queryset
