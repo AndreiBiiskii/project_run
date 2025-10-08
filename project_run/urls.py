@@ -27,9 +27,13 @@ router = DefaultRouter()
 router.register('api/runs', AthleteAPIView)
 
 urlpatterns = [
+
     path('api/company_details/', company_details),
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('api/users/', UsersByTypeAPIView.as_view({'get': 'list'})),
     path('__debug__/', include(debug_toolbar.urls)),
+    path('api/runs/<int:run_id>/start/', StartRun.as_view()),
+    path('api/runs/<int:run_id>/end/', StartRun.as_view()),
+
 ]

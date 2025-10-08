@@ -114,3 +114,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 COMPANY_NAME = 'Бегущий>'
 SLOGAN = 'Движение - это наше все'
 CONTACTS = 'Москва, ул. Ленина, д.50'
+CHOICES_STATUS = (
+    ('init', 'Забег инициализирован'),
+    ('in_progress', 'Забег начат'),
+    ('finished', 'Забег закончен'),
+)

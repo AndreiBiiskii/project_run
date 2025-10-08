@@ -26,3 +26,7 @@ class AthleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Run
         fields = '__all__'
+
+    def create(self, validated_data):
+        status = Run.objects.create(status='init', **validated_data)
+        return status
