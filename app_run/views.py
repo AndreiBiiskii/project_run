@@ -1,5 +1,8 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import viewsets, filters, status
 from rest_framework.views import APIView
@@ -18,16 +21,26 @@ def company_details(request):
     return Response(detail)
 
 
-class AthleteAPIView(viewsets.ModelViewSet):
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size_query_param = 'size'
+
+
+class RunAPIView(viewsets.ModelViewSet):
     queryset = Run.objects.select_related('athlete').all().order_by('create_at')
     serializer_class = AthleteSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]  # Указываем какой класс будет использоваться для фильтра
+    filterset_fields = ['status', 'athlete']
+    ordering_fields = ['created_at', ]
 
 
 class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.exclude(is_superuser=True)
     serializer_class = UserSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter, OrderingFilter]
     search_fields = ['first_name', 'last_name']
+    pagination_class = StandardResultsSetPagination
+    ordering_fields = ['date_joined', ]
 
     def get_queryset(self):
         qs = self.queryset

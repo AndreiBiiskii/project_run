@@ -24,7 +24,7 @@ from rest_framework.routers import DefaultRouter
 from app_run.views import *
 
 router = DefaultRouter()
-router.register('api/runs', AthleteAPIView)
+router.register('api/runs', RunAPIView)
 
 urlpatterns = [
 
