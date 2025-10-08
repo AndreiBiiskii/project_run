@@ -16,7 +16,7 @@ def company_details(request):
 
 
 class AthleteAPIView(viewsets.ModelViewSet):
-    queryset = Run.objects.select_related('athlete').all()
+    queryset = Run.objects.select_related('athlete').all().order_by('create_at')
     serializer_class = AthleteSerializer
 
 

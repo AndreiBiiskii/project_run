@@ -4,12 +4,6 @@ from rest_framework import serializers
 from app_run.models import Run
 
 
-# class AthleteSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Run
-#         fields = ['id', 'athlete__first_name', 'create_at', 'comment']
-
-
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
 
@@ -27,8 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class AthleteSerializer(serializers.ModelSerializer):
-    at = UserSerializer(read_only=True, source='athlete')
+    athlete_info = UserSerializer(read_only=True, source='athlete')
 
     class Meta:
         model = Run
-        fields = ['id', 'at',  'create_at', 'comment']
+        fields = '__all__'

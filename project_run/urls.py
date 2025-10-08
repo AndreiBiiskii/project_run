@@ -31,6 +31,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('api/users/', UsersByTypeAPIView.as_view({'get': 'list'})),
-path('__debug__/', include(debug_toolbar.urls)),
+    path('__debug__/', include(debug_toolbar.urls)),
 ]
-
