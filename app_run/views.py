@@ -1,6 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -31,13 +31,13 @@ class RunAPIView(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]  # Указываем какой класс будет использоваться для фильтра
     filterset_fields = ['status', 'athlete']
-    ordering_fields = ['create_at', ]
+    ordering_fields = ['created_at', ]
 
 
 class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.exclude(is_superuser=True)
     serializer_class = UserSerializer
-    filter_backends = [filters.SearchFilter, OrderingFilter]
+    filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['first_name', 'last_name']
     pagination_class = StandardResultsSetPagination
     ordering_fields = ['date_joined', ]
