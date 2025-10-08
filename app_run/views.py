@@ -26,12 +26,12 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class RunAPIView(viewsets.ModelViewSet):
-    queryset = Run.objects.select_related('athlete').all().order_by('create_at')
+    queryset = Run.objects.select_related('athlete').all()
     serializer_class = AthleteSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]  # Указываем какой класс будет использоваться для фильтра
     filterset_fields = ['status', 'athlete']
-    ordering_fields = ['created_at', ]
+    ordering_fields = ['create_at', ]
 
 
 class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
