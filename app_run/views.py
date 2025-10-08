@@ -40,7 +40,7 @@ class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
         return qs
 
 
-class StartRun(APIView):
+class StartRunAPIView(APIView):
     def post(self, request, run_id=None):
         queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
@@ -53,14 +53,14 @@ class StartRun(APIView):
         return Response(serializer.data)
 
 
-class FinishedRun(APIView):
+class EndRunAPIView(APIView):
     def post(self, request, run_id=None):
         queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
                             status=status.HTTP_400_BAD_REQUEST)
-        run.status = 'in_progress'
+        run.status = 'finished'
         run.save()
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
