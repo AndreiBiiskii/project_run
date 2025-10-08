@@ -34,6 +34,6 @@ urlpatterns = [
     path('api/users/', UsersByTypeAPIView.as_view({'get': 'list'})),
     path('__debug__/', include(debug_toolbar.urls)),
     path('api/runs/<int:run_id>/start/', StartRunAPIView.as_view()),
-    path('api/runs/<int:run_id>/end/', EndRunAPIView.as_view()),
+    path('api/runs/<int:run_id>/stop/', StopRunAPIView.as_view()),
 
 ]

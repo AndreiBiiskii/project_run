@@ -53,7 +53,7 @@ class StartRunAPIView(APIView):
         return Response(serializer.data)
 
 
-class EndRunAPIView(APIView):
+class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
         queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
