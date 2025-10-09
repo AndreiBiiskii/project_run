@@ -94,40 +94,49 @@ class AthleteInfoAPIView(APIView):
 
     def put(self, request, user_id):
         goals = request.query_params.get('goals', '')
-        weight = request.query_params.get('weight', None)
-        if weight and (((int(weight) > 0) or (int(weight)) < 900) and (goals != '')):
+        weight = int(request.query_params.get('weight', '-1'))
+        if (weight != -1) and ((weight < 0) or (weight > 900)):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if (weight != -1) and (goals != ''):
+            print(1)
             try:
                 objects, result = AthleteInfo.objects.update_or_create(
                     athlete_id=user_id,
                     defaults={
-                        'goals': goals,
-                        'weight': weight
+                        'weight': weight,
+                        'goals': goals
                     }
                 )
+                serializer = AthleteInfoSerializer(objects)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             except:
                 return Response(status=status.HTTP_404_NOT_FOUND)
-        if (weight is None) and (goals != ''):
+
+        if (weight != -1) and (goals == ''):
+            print(2)
             try:
                 objects, result = AthleteInfo.objects.update_or_create(
                     athlete_id=user_id,
                     defaults={
-                        'goals': goals,
+                        'weight': weight,
                     }
                 )
+                serializer = AthleteInfoSerializer(objects)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             except:
                 return Response(status=status.HTTP_404_NOT_FOUND)
-        if weight and ((int(weight) > 0) or (int(weight) < 900) and (goals == '')):
+
+        if (weight == -1) and (goals != ''):
+            print(3)
             try:
                 objects, result = AthleteInfo.objects.update_or_create(
                     athlete_id=user_id,
                     defaults={
-                        'weight': weight
+                        'goals': goals
                     }
                 )
+                serializer = AthleteInfoSerializer(objects)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             except:
                 return Response(status=status.HTTP_404_NOT_FOUND)
-        if weight is None and (goals == ''):
-            print(4)
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = AthleteInfoSerializer(objects)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
