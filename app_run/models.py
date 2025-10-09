@@ -16,8 +16,8 @@ class Run(models.Model):
 
 
 class AthleteInfo(models.Model):
-    goals = models.CharField(max_length=255, blank=True)
-    weight = models.SmallIntegerField(blank=True)
+    goals = models.CharField(max_length=255, blank=True, null=True)
+    weight = models.SmallIntegerField(blank=True, null=True)
     athlete = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
