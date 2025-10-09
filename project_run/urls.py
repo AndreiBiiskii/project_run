@@ -35,5 +35,6 @@ urlpatterns = [
     path('__debug__/', include(debug_toolbar.urls)),
     path('api/runs/<int:run_id>/start/', StartRunAPIView.as_view()),
     path('api/runs/<int:run_id>/stop/', StopRunAPIView.as_view()),
+    path('api/athlete_info/<int:user_id>/', AthleteInfoAPIView.as_view())
 
 ]

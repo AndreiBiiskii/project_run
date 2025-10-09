@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from app_run.models import Run
+from app_run.models import Run, AthleteInfo
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -34,3 +34,11 @@ class AthleteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         status = Run.objects.create(status='init', **validated_data)
         return status
+
+
+class AthleteInfoSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True, source='athlete')
+
+    class Meta:
+        model = AthleteInfo
+        fields = ['id', 'goals', 'weight', 'user']

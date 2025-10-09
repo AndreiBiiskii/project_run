@@ -1,3 +1,5 @@
+from django.db.models import Count, F
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -7,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets, filters, status
 from rest_framework.views import APIView
 
+from app_run.models import AthleteInfo
 from app_run.serializers import *
 from project_run.settings import base
 
@@ -77,4 +80,32 @@ class StopRunAPIView(APIView):
         run.status = 'finished'
         run.save()
         serializer = AthleteSerializer(run)
+        return Response(serializer.data)
+
+
+class AthleteInfoAPIView(APIView):
+    def get(self, request, user_id):
+        try:
+            objects, result = AthleteInfo.objects.get_or_create(athlete_id=user_id, goals='', weight=None)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = AthleteInfoSerializer(objects)
+        return Response(serializer.data)
+
+    def put(self, request, user_id):
+        goals = request.query_params.get('goals', '')
+        weight = request.query_params.get('weight', None)
+        if weight and ((int(weight) < 0) or (int(weight) > 900)):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            objects, result = AthleteInfo.objects.update_or_create(
+                athlete_id=user_id,
+                defaults={
+                    'goals': goals,
+                    'weight': weight
+                }
+            )
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = AthleteInfoSerializer(objects)
         return Response(serializer.data)

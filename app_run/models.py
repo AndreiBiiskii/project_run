@@ -1,3 +1,4 @@
+from botocore.endpoint_provider import TreeRule
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -12,3 +13,9 @@ class Run(models.Model):
 
     def __str__(self):
         return self.athlete.username
+
+
+class AthleteInfo(models.Model):
+    goals = models.CharField(max_length=255, blank=True, null=True)
+    weight = models.SmallIntegerField(blank=True, null=True)
+    athlete = models.OneToOneField(User, on_delete=models.CASCADE)
