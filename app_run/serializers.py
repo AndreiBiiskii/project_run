@@ -37,8 +37,9 @@ class AthleteSerializer(serializers.ModelSerializer):
 
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
-    # user_id = serializers.IntegerField(read_only=True)
+    user_id = UserSerializer(read_only=True, source='athlete')
 
     class Meta:
         model = AthleteInfo
-        fields = ['goals', 'weight']
+        fields = ['user_id', 'goals', 'weight']
+
