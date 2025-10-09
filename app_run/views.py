@@ -100,7 +100,7 @@ class AthleteInfoAPIView(APIView):
                 weight = int(request.data.get('weight', '-1'))
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-        if (weight != -1) and ((weight < 0) or (weight > 900)):
+        if (weight != -1) and ((weight <= 0) or (weight >= 900)):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         if (weight != -1) and (goals != ''):
             try:
