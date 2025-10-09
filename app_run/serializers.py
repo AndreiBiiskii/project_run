@@ -21,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
         return text
 
     def get_runs_finished(self, obj):
-        return User.objects.filter(run__status='finished').count()
+        return User.objects.filter(run__athlete=obj, run__status='finished').count()
 
 
 class AthleteSerializer(serializers.ModelSerializer):
