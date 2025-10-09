@@ -93,8 +93,8 @@ class AthleteInfoAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, user_id):
-        goals = request.query_params.get('goals', '')
-        weight = int(request.query_params.get('weight', '-1'))
+        goals = request.data.get('goals', '')
+        weight = int(request.data.get('weight', '-1'))
         if (weight != -1) and ((weight < 0) or (weight > 900)):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         if (weight != -1) and (goals != ''):
