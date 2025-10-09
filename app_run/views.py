@@ -94,11 +94,15 @@ class AthleteInfoAPIView(APIView):
 
     def put(self, request, user_id):
         goals = request.data.get('goals', '')
-        weight = int(request.data.get('weight', '-1'))
+        weight = request.data.get('weight', -1)
+        if type(weight) == str:
+            if weight.isdigit():
+                weight = int(request.data.get('weight', '-1'))
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
         if (weight != -1) and ((weight < 0) or (weight > 900)):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         if (weight != -1) and (goals != ''):
-            print(1)
             try:
                 objects, result = AthleteInfo.objects.update_or_create(
                     athlete_id=user_id,
@@ -127,7 +131,6 @@ class AthleteInfoAPIView(APIView):
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
         if (weight == -1) and (goals != ''):
-            print(3)
             try:
                 objects, result = AthleteInfo.objects.update_or_create(
                     athlete_id=user_id,
