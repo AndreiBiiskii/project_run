@@ -39,9 +39,10 @@ class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['first_name', 'last_name']
-    pagination_class = StandardResultsSetPagination
     ordering_fields = ['date_joined', ]
+    pagination_class = StandardResultsSetPagination
 
+    # api/users/?type=athlete&ordering=date_joined&size=1
     def get_queryset(self):
         qs = self.queryset
         user_by_type = self.request.query_params.get('type', None)
