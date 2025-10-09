@@ -139,4 +139,9 @@ class AthleteInfoAPIView(APIView):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except:
                 return Response(status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_200_OK)
+        try:
+            objects, result = AthleteInfo.objects.get_or_create(athlete_id=user_id)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = AthleteInfoSerializer(objects)
+        return Response(serializer.data, status=status.HTTP_200_OK)
