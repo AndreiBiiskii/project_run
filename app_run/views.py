@@ -90,7 +90,7 @@ class AthleteInfoAPIView(APIView):
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = AthleteInfoSerializer(objects)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, user_id):
         goals = request.query_params.get('goals', '')
