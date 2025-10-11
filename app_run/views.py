@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets, filters, status
 from rest_framework.views import APIView
 
-from app_run.models import AthleteInfo
+from app_run.models import AthleteInfo, Challenge
 from app_run.serializers import *
 from project_run.settings import base
 
@@ -74,13 +74,29 @@ class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
         queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
+        run_count = Run.objects.filter(athlete_id=run.athlete.id).count()
+        if run_count == 10:
+            Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
                             status=status.HTTP_400_BAD_REQUEST)
         run.status = 'finished'
         run.save()
+
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
+
+
+class ChallengeAPIView(viewsets.ReadOnlyModelViewSet):
+    queryset = Challenge.objects.all()
+    serializer_class = ChallengeSerializer
+
+    def get_queryset(self):
+        qs = self.queryset
+        athlete = self.request.query_params.get('athlete')
+        if athlete:
+            qs = qs.filter(athlete_id=athlete)
+        return qs
 
 
 class AthleteInfoAPIView(APIView):

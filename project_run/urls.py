@@ -27,7 +27,6 @@ router = DefaultRouter()
 router.register('api/runs', RunAPIView)
 
 urlpatterns = [
-
     path('api/company_details/', company_details),
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
@@ -35,6 +34,8 @@ urlpatterns = [
     path('__debug__/', include(debug_toolbar.urls)),
     path('api/runs/<int:run_id>/start/', StartRunAPIView.as_view()),
     path('api/runs/<int:run_id>/stop/', StopRunAPIView.as_view()),
-    path('api/athlete_info/<int:user_id>/', AthleteInfoAPIView.as_view())
+    path('api/athlete_info/<int:user_id>/', AthleteInfoAPIView.as_view()),
+    path('api/challenges/', ChallengeAPIView.as_view({'get': 'list'})),
+    # path('api/challenges/?athlete=<id>', ChallengeAPIView.as_view),
 
 ]

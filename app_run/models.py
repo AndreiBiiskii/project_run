@@ -22,3 +22,11 @@ class AthleteInfo(models.Model):
 
     def __str__(self):
         return self.athlete.username
+
+
+class Challenge(models.Model):
+    full_name = models.CharField(max_length=100)
+    athlete = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.full_name
