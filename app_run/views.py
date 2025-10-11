@@ -73,16 +73,13 @@ class StartRunAPIView(APIView):
 class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
         queryset = Run.objects.all()
-        print(run_id)
         run = get_object_or_404(queryset, pk=run_id)
-        print('id athlete', run.athlete.id)
-        run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
-        print(run.athlete_id, run_count)
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
                             status=status.HTTP_400_BAD_REQUEST)
         run.status = 'finished'
         run.save()
+        run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
         serializer = AthleteSerializer(run)
