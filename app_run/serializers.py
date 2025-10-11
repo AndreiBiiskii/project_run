@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -58,11 +60,13 @@ class PositionSerializer(serializers.ModelSerializer):
         model = Position
         fields = '__all__'
 
-    def create(self, validated_data):
-        print(validated_data['run'].athlete.id)
+    def validate(self, validated_data):
+        pprint(validated_data)
         if validated_data['run'].status != 'in_progress':
             raise serializers.ValidationError("Забег должен быть запущен")
         return validated_data
+
+        return
 
     def validate_latitude(self, value):
         if (value < -90) or (value > 90):
