@@ -25,6 +25,7 @@ from app_run.views import *
 
 router = DefaultRouter()
 router.register('api/runs', RunAPIView)
+router.register('api/positions', PositionAPIView)
 
 urlpatterns = [
     path('api/company_details/', company_details),
@@ -36,6 +37,4 @@ urlpatterns = [
     path('api/runs/<int:run_id>/stop/', StopRunAPIView.as_view()),
     path('api/athlete_info/<int:user_id>/', AthleteInfoAPIView.as_view()),
     path('api/challenges/', ChallengeAPIView.as_view({'get': 'list'})),
-    # path('api/challenges/?athlete=<id>', ChallengeAPIView.as_view),
-
 ]

@@ -30,3 +30,9 @@ class Challenge(models.Model):
 
     def __str__(self):
         return self.full_name
+
+
+class Position(models.Model):
+    run = models.ForeignKey(Run, on_delete=models.CASCADE)
+    latitude = models.FloatField()
+    longitude = models.FloatField()

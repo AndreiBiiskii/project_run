@@ -1,15 +1,11 @@
-from django.db.models import Count, F
-from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, status
 from rest_framework.views import APIView
-
-from app_run.models import AthleteInfo, Challenge
 from app_run.serializers import *
 from project_run.settings import base
 
@@ -163,3 +159,15 @@ class AthleteInfoAPIView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = AthleteInfoSerializer(objects)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PositionAPIView(viewsets.ModelViewSet):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
+
+    def get_queryset(self):
+        qs = self.queryset
+        run_id = self.request.query_params.get('run', None)
+        if run_id:
+            qs = qs.filter(run_id=run_id)
+        return qs
