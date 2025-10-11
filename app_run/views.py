@@ -8,6 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from app_run.serializers import *
 from project_run.settings import base
+from geopy import distance as d
 
 
 @api_view(['GET'])
@@ -78,6 +79,7 @@ class StopRunAPIView(APIView):
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
+
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
 
