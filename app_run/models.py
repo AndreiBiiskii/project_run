@@ -10,6 +10,7 @@ class Run(models.Model):
     athlete = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.TextField()
     status = models.CharField(choices=CHOICES_STATUS, default=False)
+    distance = models.FloatField(blank=True, null=True)
 
     def __str__(self):
         return self.athlete.username

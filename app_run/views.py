@@ -74,12 +74,20 @@ class StopRunAPIView(APIView):
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
                             status=status.HTTP_400_BAD_REQUEST)
+        positions = Position.objects.filter(run=run.id)
+        point_run = []
+        for i in positions:
+            if len(positions) < 2:
+                continue
+            point_run.append((i.latitude, i.longitude))
+        point_run_tuple = point_run
+        distance = d.distance(*point_run_tuple).km
+        run.distance = distance
         run.status = 'finished'
         run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
-
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
 

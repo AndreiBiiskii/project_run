@@ -28,31 +28,27 @@ class UserSerializer(serializers.ModelSerializer):
 
 class AthleteSerializer(serializers.ModelSerializer):
     athlete_data = UserSerializer(read_only=True, source='athlete')
-    distance = serializers.SerializerMethodField()
+    # distance = serializers.SerializerMethodField()
 
     class Meta:
         model = Run
-        fields = ['id', 'created_at', 'athlete', 'comment', 'status', 'athlete_data', 'distance']
-
-    # ated_at = models.DateTimeField(auto_now_add=True)
-    #     athlete = models.ForeignKey(User, on_delete=models.CASCADE)
-    #     comment = models.TextField()
-    #     sta
+        # fields = ['id', 'created_at', 'athlete', 'comment', 'status', 'athlete_data', 'distance']
+        fields = '__all__'
 
     def create(self, validated_data):
         status = Run.objects.create(status='init', **validated_data)
         return status
 
-    def get_distance(self, obj):
-        positions = Position.objects.filter(run=obj.id)
-        point_run = []
-        for i in positions:
-            if len(positions) < 2:
-                continue
-            point_run.append((i.latitude, i.longitude))
-        point_run_tuple = point_run
-        distance = d.distance(*point_run_tuple).km
-        return distance
+    # def get_distance(self, obj):
+    #     positions = Position.objects.filter(run=obj.id)
+    #     point_run = []
+    #     for i in positions:
+    #         if len(positions) < 2:
+    #             continue
+    #         point_run.append((i.latitude, i.longitude))
+    #     point_run_tuple = point_run
+    #     distance = d.distance(*point_run_tuple).km
+    #     return distance
 
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
