@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -88,6 +89,9 @@ class StopRunAPIView(APIView):
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
+        full_distance = Run.objects.filter(athlete_id=run.athlete.id).aggregate(Sum('distance'))
+        if full_distance >= 50:
+            Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
 
