@@ -1,4 +1,4 @@
-import os
+import io
 
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
@@ -198,8 +198,10 @@ class CollectibleItemAPIView(viewsets.ReadOnlyModelViewSet):
 class UploadFileAPIView(APIView):
     def post(self, request):
         uploaded_file = request.FILES.get('file')
-        file_path = default_storage.save(uploaded_file.name, uploaded_file)
-        wb = load_workbook(file_path)
+        # file_path = default_storage.save(uploaded_file.name, uploaded_file) сохранение файла
+        file_content = uploaded_file.read()
+        file_stream = io.BytesIO(file_content)
+        wb = load_workbook(file_stream)
         ws = wb.active
         error = []
         for row in ws.values:
@@ -222,5 +224,5 @@ class UploadFileAPIView(APIView):
                 for er in serializer.errors:
                     error_fields.append(data[er])
                 error.append(error_fields)
-        os.remove(file_path)
+        # os.remove(file_path) удаление файла
         return Response(error)
