@@ -197,7 +197,7 @@ class CollectibleItemAPIView(viewsets.ReadOnlyModelViewSet):
 
 class UploadFileAPIView(APIView):
     def post(self, request):
-        uploaded_file = request.FILES.get('my_file')
+        uploaded_file = request.FILES.get('file')
         file_path = default_storage.save(uploaded_file.name, uploaded_file)
         wb = load_workbook(file_path)
         ws = wb.active
