@@ -220,9 +220,6 @@ class UploadFileAPIView(APIView):
             if serializer.is_valid():
                 CollectibleItem.objects.create(**serializer.validated_data)
             else:
-                error_fields = []
-                for er in serializer.errors:
-                    error_fields.append(data[er])
-                error.append(error_fields)
+                error.append(list(data.values()))
         # os.remove(file_path) удаление файла
         return Response(error)
