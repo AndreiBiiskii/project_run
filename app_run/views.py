@@ -1,5 +1,8 @@
+import os
+
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
+from openpyxl import load_workbook
 from rest_framework.decorators import api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import get_object_or_404
@@ -10,7 +13,7 @@ from rest_framework.views import APIView
 from app_run.serializers import *
 from project_run.settings import base
 from geopy import distance as d
-
+from django.core.files.storage import default_storage
 
 @api_view(['GET'])
 def company_details(request):
@@ -90,7 +93,6 @@ class StopRunAPIView(APIView):
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
         full_distance = Run.objects.filter(athlete_id=run.athlete.id).aggregate(Sum('distance'))
-        print(full_distance['distance__sum'])
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
         serializer = AthleteSerializer(run)
@@ -186,3 +188,39 @@ class PositionAPIView(viewsets.ModelViewSet):
         if run_id:
             qs = qs.filter(run_id=run_id)
         return qs
+
+
+class CollectibleItemAPIView(viewsets.ReadOnlyModelViewSet):
+    queryset = CollectibleItem.objects.all()
+    serializer_class = CollectibleItemSerializer
+
+
+class UploadFileAPIView(APIView):
+    def post(self, request):
+        uploaded_file = request.FILES.get('my_file')
+        file_path = default_storage.save(uploaded_file.name, uploaded_file)
+        wb = load_workbook(file_path)
+        ws = wb.active
+        error = []
+        for row in ws.values:
+            if row[0] == 'Name':
+                continue
+            data = {
+                'name': row[0],
+                'uid': row[1],
+                'value': row[2],
+                'latitude': row[3],
+                'longitude': row[4],
+                'picture': row[5],
+
+            }
+            serializer = CollectibleItemSerializer(data=data)
+            if serializer.is_valid():
+                CollectibleItem.objects.create(**serializer.validated_data)
+            else:
+                error_fields = []
+                for er in serializer.errors:
+                    error_fields.append(data[er])
+                error.append(error_fields)
+        os.remove(file_path)
+        return Response(error)

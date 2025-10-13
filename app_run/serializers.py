@@ -3,7 +3,7 @@ from geopy import distance as d
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from app_run.models import Run, AthleteInfo, Challenge, Position
+from app_run.models import Run, AthleteInfo, Challenge, Position, CollectibleItem
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -28,6 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class AthleteSerializer(serializers.ModelSerializer):
     athlete_data = UserSerializer(read_only=True, source='athlete')
+
     # distance = serializers.SerializerMethodField()
 
     class Meta:
@@ -89,4 +90,22 @@ class PositionSerializer(serializers.ModelSerializer):
     def validate_longitude(self, value):
         if (value < -180) or (value > 180):
             raise serializers.ValidationError("Долгота должна находиться в диапазоне от -180.0 до +180.0 градусов")
+        return round(value, 4)
+
+
+class CollectibleItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectibleItem
+        fields = '__all__'
+
+    def validate_latitude(self, value):
+        if type(value) == float:
+            if (value < -90) or (value > 90):
+                raise serializers.ValidationError("Широта должна находиться в диапазоне от -90.0 до +90.0 градусов")
+        return round(value, 4)
+
+    def validate_longitude(self, value):
+        if type(value) == float:
+            if (value < -180) or (value > 180):
+                raise serializers.ValidationError("Долгота должна находиться в диапазоне от -180.0 до +180.0 градусов")
         return round(value, 4)

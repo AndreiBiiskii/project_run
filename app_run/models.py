@@ -37,3 +37,12 @@ class Position(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     latitude = models.FloatField()
     longitude = models.FloatField()
+
+
+class CollectibleItem(models.Model):
+    name = models.CharField(max_length=100)
+    uid = models.CharField(max_length=50)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    picture = models.URLField()
+    value = models.IntegerField()
