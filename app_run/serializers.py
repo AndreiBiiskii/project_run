@@ -90,7 +90,7 @@ class PositionSerializer(serializers.ModelSerializer):
 class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem
-        fields = '__all__'
+        fields = ['latitude', 'longitude', 'name', 'picture', 'uid', 'value']
 
     def validate_latitude(self, value):
         if type(value) == float:

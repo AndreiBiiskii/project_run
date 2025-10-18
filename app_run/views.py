@@ -222,6 +222,7 @@ class UploadFileAPIView(APIView):
                 'picture': row[5],
 
             }
+            # pprint(data)
             serializer = CollectibleItemSerializer(data=data)
             if serializer.is_valid():
                 CollectibleItem.objects.create(**serializer.validated_data)
