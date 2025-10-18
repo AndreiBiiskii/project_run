@@ -32,6 +32,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('api/users/', UsersByTypeAPIView.as_view({'get': 'list'})),
+    path('api/users/<int:pk>/', UsersByTypeAPIView.as_view({'get': 'retrieve'})),
     path('__debug__/', include(debug_toolbar.urls)),
     path('api/runs/<int:run_id>/start/', StartRunAPIView.as_view()),
     path('api/runs/<int:run_id>/stop/', StopRunAPIView.as_view()),

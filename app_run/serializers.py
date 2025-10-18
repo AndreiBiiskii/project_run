@@ -1,8 +1,7 @@
 from pprint import pprint
-from geopy import distance as d
 from django.contrib.auth.models import User
 from rest_framework import serializers
-
+from geopy import distance as d
 from app_run.models import Run, AthleteInfo, Challenge, Position, CollectibleItem
 
 
@@ -40,17 +39,6 @@ class AthleteSerializer(serializers.ModelSerializer):
         status = Run.objects.create(status='init', **validated_data)
         return status
 
-    # def get_distance(self, obj):
-    #     positions = Position.objects.filter(run=obj.id)
-    #     point_run = []
-    #     for i in positions:
-    #         if len(positions) < 2:
-    #             continue
-    #         point_run.append((i.latitude, i.longitude))
-    #     point_run_tuple = point_run
-    #     distance = d.distance(*point_run_tuple).km
-    #     return distance
-
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField()
@@ -75,9 +63,15 @@ class PositionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, validated_data):
-        pprint(validated_data)
         if validated_data['run'].status != 'in_progress':
             raise serializers.ValidationError("Забег должен быть запущен")
+        collectible_items = CollectibleItem.objects.all()
+        for i in collectible_items:
+            if d.distance((i.latitude, i.longitude),
+                          (validated_data['latitude'], validated_data['longitude'])).km <= 0.1:
+                collectible_items=CollectibleItem.objects.get(id=i.id)
+                athlete = User.objects.get(id=validated_data['run'].athlete.id)
+                collectible_items.athlete.add(athlete)
         return validated_data
 
         return
@@ -109,3 +103,11 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
             if (value < -180) or (value > 180):
                 raise serializers.ValidationError("Долгота должна находиться в диапазоне от -180.0 до +180.0 градусов")
         return round(value, 4)
+
+
+class UserItemsSerializer(UserSerializer):
+    items = CollectibleItemSerializer(read_only=True, many=True)
+
+    class Meta(UserSerializer.Meta):
+        model = User
+        fields = UserSerializer.Meta.fields + ['items', ]

@@ -1,9 +1,8 @@
 import io
-
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import load_workbook
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
@@ -13,7 +12,7 @@ from rest_framework.views import APIView
 from app_run.serializers import *
 from project_run.settings import base
 from geopy import distance as d
-from django.core.files.storage import default_storage
+
 
 @api_view(['GET'])
 def company_details(request):
@@ -45,6 +44,13 @@ class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
     search_fields = ['first_name', 'last_name']
     ordering_fields = ['date_joined', ]
     pagination_class = StandardResultsSetPagination
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UserSerializer
+        if self.action == 'retrieve':
+            return UserItemsSerializer
+        return self.serializer_class
 
     # api/users/?type=athlete&ordering=date_joined&size=1
     def get_queryset(self):

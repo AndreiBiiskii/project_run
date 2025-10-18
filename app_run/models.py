@@ -46,3 +46,4 @@ class CollectibleItem(models.Model):
     longitude = models.FloatField()
     picture = models.URLField()
     value = models.IntegerField()
+    athlete = models.ManyToManyField(User, related_name='items')
