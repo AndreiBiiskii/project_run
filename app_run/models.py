@@ -1,8 +1,7 @@
 import datetime
-
-from botocore.endpoint_provider import TreeRule
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 from project_run.settings.base import CHOICES_STATUS
 
@@ -40,7 +39,7 @@ class Position(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    date_time = models.DateTimeField(default=datetime.datetime.now())
+    date_time = models.DateTimeField(default=timezone.now)
 
 
 class CollectibleItem(models.Model):
