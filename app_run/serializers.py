@@ -27,13 +27,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 class AthleteSerializer(serializers.ModelSerializer):
     athlete_data = UserSerializer(read_only=True, source='athlete')
-
     # distance = serializers.SerializerMethodField()
 
     class Meta:
         model = Run
         # fields = ['id', 'created_at', 'athlete', 'comment', 'status', 'athlete_data', 'distance']
         fields = '__all__'
+        read_only_fields = ['run_time_seconds']
 
     def create(self, validated_data):
         status = Run.objects.create(status='init', **validated_data)
@@ -58,6 +58,8 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class PositionSerializer(serializers.ModelSerializer):
+    date_time = serializers.DateTimeField(format('%Y-%m-%dT%H:%M:%S.%f'))
+
     class Meta:
         model = Position
         fields = '__all__'
@@ -69,7 +71,7 @@ class PositionSerializer(serializers.ModelSerializer):
         for i in collectible_items:
             if d.distance((i.latitude, i.longitude),
                           (validated_data['latitude'], validated_data['longitude'])).km <= 0.1:
-                collectible_items=CollectibleItem.objects.get(id=i.id)
+                collectible_items = CollectibleItem.objects.get(id=i.id)
                 athlete = User.objects.get(id=validated_data['run'].athlete.id)
                 collectible_items.athlete.add(athlete)
         return validated_data

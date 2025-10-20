@@ -1,3 +1,5 @@
+import datetime
+
 from botocore.endpoint_provider import TreeRule
 from django.contrib.auth.models import User
 from django.db import models
@@ -11,6 +13,7 @@ class Run(models.Model):
     comment = models.TextField()
     status = models.CharField(choices=CHOICES_STATUS, default=False)
     distance = models.FloatField(blank=True, null=True)
+    run_time_seconds = models.PositiveIntegerField()
 
     def __str__(self):
         return self.athlete.username
@@ -37,6 +40,7 @@ class Position(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    date_time = models.DateTimeField()
 
 
 class CollectibleItem(models.Model):

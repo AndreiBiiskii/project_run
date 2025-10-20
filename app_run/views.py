@@ -1,5 +1,7 @@
 import io
-from django.db.models import Sum
+from datetime import datetime
+
+from django.db.models import Sum, Avg, ExpressionWrapper, DurationField, F, Max, Min
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import load_workbook
 from rest_framework.decorators import api_view, action
@@ -73,6 +75,16 @@ class StartRunAPIView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
         run.status = 'in_progress'
         run.save()
+        # data = {
+        #     'run': run_id,
+        #     'latitude': request.data.get('latitude'),
+        #     'longitude': request.data.get('latitude'),
+        #     'date_time': request.data.get('date_time')}
+        # serializer_position = PositionSerializer(data=data)
+        # if serializer_position.is_valid():
+        #     Position.objects.create(**serializer_position.validated_data)
+        # else:
+        #     print(serializer_position.errors)
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
 
@@ -95,6 +107,12 @@ class StopRunAPIView(APIView):
         run.distance = distance
         run.status = 'finished'
         run.save()
+
+        result = positions.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
+        if result:
+            time_difference = (result['max_value'] - result['min_value']).total_seconds()
+            run.run_time_seconds = time_difference
+            run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
@@ -220,7 +238,6 @@ class UploadFileAPIView(APIView):
                 'latitude': row[3],
                 'longitude': row[4],
                 'picture': row[5],
-
             }
             # pprint(data)
             serializer = CollectibleItemSerializer(data=data)
