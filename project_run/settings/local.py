@@ -20,7 +20,7 @@ MIDDLEWARE += [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_run1',
+        'NAME': 'django_run',
         'HOST': 'localhost',
         'PORT': '5432',
         'USER': 'andrei',
