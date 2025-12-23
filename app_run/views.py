@@ -31,7 +31,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class RunAPIView(viewsets.ModelViewSet):
-    queryset = Run.objects.select_related('athlete').all()
+    queryset = Run.objects.select_related('athlete').all().annotate(runs_finished=Count('status', filter=Q(status='finished')))
     serializer_class = AthleteSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]  # Указываем какой класс будет использоваться для фильтра
@@ -40,7 +40,7 @@ class RunAPIView(viewsets.ModelViewSet):
 
 
 class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.exclude(is_superuser=True)
+    queryset = User.objects
     serializer_class = UserSerializer
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['first_name', 'last_name']
@@ -63,6 +63,7 @@ class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
                 qs = qs.filter(is_staff=True)
             if user_by_type == 'athlete':
                 qs = qs.filter(is_staff=False)
+
         return qs
 
 

@@ -1,5 +1,7 @@
 from pprint import pprint
 from django.contrib.auth.models import User
+from django.db.models import Q
+from django.db.models.aggregates import Count, Avg
 from rest_framework import serializers
 from geopy import distance as d
 from app_run.models import Run, AthleteInfo, Challenge, Position, CollectibleItem
@@ -7,7 +9,8 @@ from app_run.models import Run, AthleteInfo, Challenge, Position, CollectibleIte
 
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
-    runs_finished = serializers.SerializerMethodField()
+    # runs_finished = serializers.SerializerMethodField()
+    runs_finished = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = User
@@ -21,18 +24,15 @@ class UserSerializer(serializers.ModelSerializer):
             text = 'coach'
         return text
 
-    def get_runs_finished(self, obj):
-        return User.objects.filter(run__athlete=obj, run__status='finished').count()
-
 
 class AthleteSerializer(serializers.ModelSerializer):
     athlete_data = UserSerializer(read_only=True, source='athlete')
-    # distance = serializers.SerializerMethodField()
+    runs_finished = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Run
-        # fields = ['id', 'created_at', 'athlete', 'comment', 'status', 'athlete_data', 'distance']
-        fields = '__all__'
+        fields = ['id', 'created_at', 'athlete', 'comment', 'status', 'athlete_data', 'distance', 'runs_finished']
+        # fields = '__all__'
         read_only_fields = ['run_time_seconds']
 
     def create(self, validated_data):
