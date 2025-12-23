@@ -27,12 +27,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 class AthleteSerializer(serializers.ModelSerializer):
     athlete_data = UserSerializer(read_only=True, source='athlete')
-    runs_finished = serializers.IntegerField(read_only=True)
+    # runs_finished = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Run
-        fields = ['id', 'created_at', 'athlete', 'comment', 'status', 'athlete_data', 'distance', 'runs_finished']
-        # fields = '__all__'
+        # fields = ['id', 'created_at', 'athlete', 'comment', 'status', 'athlete_data', 'distance', 'runs_finished']
+        fields = '__all__'
         read_only_fields = ['run_time_seconds']
 
     def create(self, validated_data):
