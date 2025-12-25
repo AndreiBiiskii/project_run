@@ -40,7 +40,8 @@ class RunAPIView(viewsets.ModelViewSet):
 
 
 class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.exclude(is_superuser=True).annotate(runs_finished=Count('run__status', filter=Q(run__status='finished')))
+    queryset = User.objects.exclude(is_superuser=True).annotate(
+        runs_finished=Count('run__status', filter=Q(run__status='finished')))
     serializer_class = UserSerializer
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['first_name', 'last_name']
@@ -87,7 +88,7 @@ class StopRunAPIView(APIView):
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
                             status=status.HTTP_400_BAD_REQUEST)
-        positions = Position.objects.filter(run=run.id)
+        positions = Position.objects.filter(run_id=run.id)
         point_run = []
         for i in positions:
             if len(positions) < 2:
@@ -100,10 +101,13 @@ class StopRunAPIView(APIView):
         run.save()
         result = positions.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
         if result:
-            time_difference = (result['max_value'] - result['min_value']).total_seconds()
+            try:
+                time_difference = (result['max_value'] - result['min_value']).total_seconds()
+            except:
+                return Response({'error': 'Забег не успел начаться)'})
             run.run_time_seconds = time_difference
             run.save()
-            print(result['max_value'],'\n',result['min_value'])
+            print(result['max_value'], '\n', result['min_value'])
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
