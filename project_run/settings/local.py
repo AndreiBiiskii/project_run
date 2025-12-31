@@ -34,5 +34,3 @@ INTERNAL_IPS = [
 ]
 
 
-DATETIME_FORMAT = ['%Y-%m-%d %H:%M',]
-USE_L10N = False
