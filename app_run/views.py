@@ -216,7 +216,9 @@ class PositionAPIView(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         last_position = Position.objects.filter(run_id=request.data['run']).last()
         if last_position is None:
-             return Response(super().create(request, *args, **kwargs))
+            response = super().create(request, *args, **kwargs)
+            return Response({"data": response.data},
+                            status=response.status_code)
         current_distance = d.distance((last_position.latitude, last_position.longitude),
                                       (request.data['latitude'], request.data['longitude'])).km
         speed_point = (current_distance * 1000) / (
