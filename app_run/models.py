@@ -39,7 +39,7 @@ class Position(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    date_time = models.DateTimeField(auto_now=True, )
+    date_time = models.DateTimeField(default=datetime.datetime.now(datetime.timezone.utc))
     speed = models.FloatField(default=0.0)
     distance = models.FloatField(default=0.0)
 
