@@ -32,3 +32,7 @@ INTERNAL_IPS = [
     '127.0.0.1',
     # Add other internal IPs if needed
 ]
+
+
+DATETIME_FORMAT = ['%Y-%m-%d %H:%M',]
+USE_L10N = False
