@@ -40,6 +40,8 @@ class Position(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     date_time = models.DateTimeField(default=timezone.now)
+    speed = models.FloatField(default=0.0)
+    distance = models.FloatField(default=0.0)
 
 
 class CollectibleItem(models.Model):

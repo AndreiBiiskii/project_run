@@ -1,7 +1,6 @@
+import datetime
 import io
-from datetime import datetime
-
-from django.db.models import Sum, Avg, ExpressionWrapper, DurationField, F, Max, Min
+from django.db.models import Sum, Max, Min
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import load_workbook
 from rest_framework.decorators import api_view, action
@@ -11,6 +10,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
+from urllib3 import request
+
 from app_run.serializers import *
 from project_run.settings import base
 from geopy import distance as d
@@ -114,6 +115,10 @@ class StopRunAPIView(APIView):
         full_distance = Run.objects.filter(athlete_id=run.athlete.id).aggregate(Sum('distance'))
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
+        final_speed = run.position_set.aggregate(Avg('speed'))
+        f_speed = run.position_set.last()
+        f_speed.speed = final_speed['speed__avg']
+        f_speed.save()
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
 
@@ -208,6 +213,18 @@ class PositionAPIView(viewsets.ModelViewSet):
             qs = qs.filter(run_id=run_id)
         return qs
 
+    def create(self, request, *args, **kwargs):
+        last_position = Position.objects.filter(run_id=request.data['run']).last()
+        current_distance = d.distance((last_position.latitude, last_position.longitude),
+                                      (request.data['latitude'], request.data['longitude'])).km
+        speed_point = (current_distance * 1000) / (
+            (datetime.datetime.now(datetime.timezone.utc) - last_position.date_time).total_seconds())
+        request.data['distance'] = round(current_distance + last_position.distance, 2)
+        request.data['speed'] = round(speed_point, 2)
+        response = super().create(request, *args, **kwargs)
+        return Response({"data": response.data},
+                        status=response.status_code)
+
 
 class CollectibleItemAPIView(viewsets.ReadOnlyModelViewSet):
     queryset = CollectibleItem.objects.all()
@@ -234,7 +251,6 @@ class UploadFileAPIView(APIView):
                 'longitude': row[4],
                 'picture': row[5],
             }
-            # pprint(data)
             serializer = CollectibleItemSerializer(data=data)
             if serializer.is_valid():
                 CollectibleItem.objects.create(**serializer.validated_data)
