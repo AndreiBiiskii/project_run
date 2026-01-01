@@ -8,5 +8,5 @@ openpyxl==3.1.5
 validators==0.34.0
 pydantic==2.11.7
 django-extensions==4.1
-psycopg==3.2.10
+
 
