@@ -2,6 +2,7 @@ import datetime
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from psycopg.types.datetime import utc
 
 from project_run.settings.base import CHOICES_STATUS
 
@@ -39,7 +40,7 @@ class Position(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    date_time = models.DateTimeField(default=datetime.datetime.now(datetime.timezone.utc))
+    date_time = models.DateTimeField(default=datetime.datetime.now(tz=timezone.get_default_timezone()))
     speed = models.FloatField(default=0.0)
     distance = models.FloatField(default=0.0)
 
