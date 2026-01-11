@@ -231,10 +231,11 @@ class PositionAPIView(viewsets.ModelViewSet):
                                       (request.data['latitude'], request.data['longitude'])).km
         diff_time = (datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
             tzinfo=datetime.timezone.utc) - last_position.date_time).total_seconds()
-        if diff_time > 0:
+        print(datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f'), last_position.date_time)
+        if diff_time != 0:
             speed_point = (current_distance * 1000) / diff_time
-            request.data['distance'] = round(current_distance + last_position.distance, 2)
-            request.data['speed'] = round(speed_point, 2)
+            request.data['distance'] = current_distance + last_position.distance
+            request.data['speed'] = speed_point
         else:
             request.data['speed'] = 0
         # print(last_position.date_time, datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f'))
