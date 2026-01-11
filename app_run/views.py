@@ -230,10 +230,10 @@ class PositionAPIView(viewsets.ModelViewSet):
         current_distance = d.distance((last_position.latitude, last_position.longitude),
                                       (request.data['latitude'], request.data['longitude'])).km
         speed_point = (current_distance * 1000) / (
-            (datetime.datetime.now() - last_position.date_time).total_seconds())
+            (datetime.datetime.now(datetime.timezone.utc) - last_position.date_time).total_seconds())
         request.data['distance'] = round(current_distance + last_position.distance, 2)
         request.data['speed'] = round(speed_point, 2)
-        print(last_position.date_time, datetime.datetime.now())
+        print(last_position.date_time, datetime.datetime.now(datetime.timezone.utc))
         response = super().create(request, *args, **kwargs)
         return Response({"data": response.data},
                         status=response.status_code)
