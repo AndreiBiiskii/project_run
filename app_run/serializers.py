@@ -1,3 +1,4 @@
+import datetime
 from pprint import pprint
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -58,7 +59,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class PositionSerializer(serializers.ModelSerializer):
-    date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f', read_only=True)
+    date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f')
     full_distance = serializers.FloatField(read_only=True)
     class Meta:
         model = Position
@@ -67,6 +68,7 @@ class PositionSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if validated_data['run'].status != 'in_progress':
             raise serializers.ValidationError("Забег должен быть запущен")
+        validated_data['date_time'] = datetime.datetime.now()
         collectible_items = CollectibleItem.objects.all()
         for i in collectible_items:
             if d.distance((i.latitude, i.longitude),
