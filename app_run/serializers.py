@@ -68,7 +68,7 @@ class PositionSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if validated_data['run'].status != 'in_progress':
             raise serializers.ValidationError("Забег должен быть запущен")
-        validated_data['date_time'] = datetime.datetime.now()
+        # validated_data['date_time'] = datetime.datetime.now()
         collectible_items = CollectibleItem.objects.all()
         for i in collectible_items:
             if d.distance((i.latitude, i.longitude),
