@@ -32,12 +32,13 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class RunAPIView(viewsets.ModelViewSet):
-    queryset = Run.objects.select_related('athlete').all()
+    queryset = Run.objects.select_related('athlete').all().annotate(full_distance=Sum('distance'))
     serializer_class = AthleteSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]  # Указываем какой класс будет использоваться для фильтра
     filterset_fields = ['status', 'athlete']
     ordering_fields = ['created_at', ]
+    # full_distance = Run.objects.filter(athlete_id=queryset.athlete.id).aggregate(Sum('distance'))
 
 
 class UsersByTypeAPIView(viewsets.ReadOnlyModelViewSet):
@@ -113,6 +114,8 @@ class StopRunAPIView(APIView):
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
         full_distance = Run.objects.filter(athlete_id=run.athlete.id).aggregate(Sum('distance'))
+        print('******', full_distance)
+
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
         final_speed = run.position_set.aggregate(Avg('speed'))
