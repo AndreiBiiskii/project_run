@@ -217,28 +217,35 @@ class PositionAPIView(viewsets.ModelViewSet):
         return qs
 
     def create(self, request, *args, **kwargs):
-        try:
-            last_position = Position.objects.filter(run_id=request.data['run']).last()
-        except:
-            response = super().create(request, *args, **kwargs)
-            return Response({"data": response.data},
-                            status=response.status_code)
-        if last_position is None:
-            response = super().create(request, *args, **kwargs)
-            return Response({"data": response.data},
-                            status=response.status_code)
-        current_distance = d.distance((last_position.latitude, last_position.longitude),
-                                      (request.data['latitude'], request.data['longitude'])).km
-        diff_time = (datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
-            tzinfo=datetime.timezone.utc) - last_position.date_time).total_seconds()
-        if diff_time > 0:
-            speed_point = (current_distance * 1000) / diff_time
-            request.data['distance'] = round(current_distance + last_position.distance, 2)
-            request.data['speed'] = round(speed_point, 2)
-        else:
-            request.data['speed'] = 0
-        # print(last_position.date_time, datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f'))
         response = super().create(request, *args, **kwargs)
+        last_position = Position.objects.filter(run_id=request.data['run']).order_by('-date_time')[:2]
+        if len(last_position) == 2 :
+            time_one = last_position.values()[0]['date_time']
+            time_tow = last_position.values()[1]['date_time']
+            current_distance = d.distance((last_position.values()[0]['latitude'], last_position.values()[0]['longitude']),
+                                          (last_position.values()[1]['latitude'], last_position.values()[1]['longitude'])).km
+            diff_time = (time_one - time_tow).total_seconds()
+            speed_point = (current_distance * 1000) / diff_time
+            request.data['distance'] = round(current_distance, 2)
+            request.data['speed'] = round(speed_point, 2)
+            response = super().create(request, *args, **kwargs)
+        # if last_position is None:
+        #     response = super().create(request, *args, **kwargs)
+        #     return Response({"data": response.data},
+        #                     status=response.status_code)
+        # current_distance = d.distance((last_position.latitude, last_position.longitude),
+        #                               (request.data['latitude'], request.data['longitude'])).km
+        # diff_time = (datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
+        #     tzinfo=datetime.timezone.utc) - last_position.date_time).total_seconds()
+        # if diff_time > 0:
+        #     speed_point = (current_distance * 1000) / diff_time
+        #     request.data['distance'] = round(current_distance + last_position.distance, 2)
+        #     request.data['speed'] = round(speed_point, 2)
+        # else:
+        #     request.data['speed'] = 0
+        # print(last_position.date_time, datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f'))
+        # response = super().create(request, *args, **kwargs)
+
         return Response({"data": response.data},
                         status=response.status_code)
 
