@@ -6,7 +6,7 @@ from project_run.settings.base import CHOICES_STATUS
 
 
 class Run(models.Model):
-    created_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     athlete = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.TextField()
     status = models.CharField(choices=CHOICES_STATUS, default=False)
@@ -38,7 +38,7 @@ class Position(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    date_time = models.DateTimeField(auto_now_add=True)
+    date_time = models.DateTimeField(auto_now=True)
     speed = models.FloatField(default=0.0)
     distance = models.FloatField(default=0.0)
 

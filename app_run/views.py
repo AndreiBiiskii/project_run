@@ -217,7 +217,12 @@ class PositionAPIView(viewsets.ModelViewSet):
         return qs
 
     def create(self, request, *args, **kwargs):
-        last_position = Position.objects.filter(run_id=request.data['run']).last()
+        try:
+            last_position = Position.objects.filter(run_id=request.data['run']).last()
+        except:
+            response = super().create(request, *args, **kwargs)
+            return Response({"data": response.data},
+                            status=response.status_code)
         if last_position is None:
             response = super().create(request, *args, **kwargs)
             return Response({"data": response.data},
@@ -228,7 +233,7 @@ class PositionAPIView(viewsets.ModelViewSet):
             (datetime.datetime.now(datetime.timezone.utc) - last_position.date_time).total_seconds())
         request.data['distance'] = round(current_distance + last_position.distance, 2)
         request.data['speed'] = round(speed_point, 2)
-        print(last_position.date_time, datetime.datetime.now(datetime.timezone.utc))
+        print(last_position.date_time, datetime.datetime.now())
         response = super().create(request, *args, **kwargs)
         return Response({"data": response.data},
                         status=response.status_code)
