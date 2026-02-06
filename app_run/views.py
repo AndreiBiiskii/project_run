@@ -241,14 +241,15 @@ class PositionAPIView(viewsets.ModelViewSet):
         current_distance = d.distance((last_position.latitude, last_position.longitude),
                                       (request.data['latitude'], request.data['longitude'])).km
         diff_time = abs((time_one - time_tow).total_seconds())
+        distance = round(current_distance + last_position.distance, 2)
         if diff_time != 0:
             speed_point = (current_distance * 1000) / diff_time
-            distance = round(current_distance + last_position.distance, 2)
             speed = round(speed_point, 2)
             response = super().create(request, *args, **kwargs)
             return Response({"distance":distance, "speed":speed, "data": response.data}, status=response.status_code)
+        speed = 0
         response = super().create(request, *args, **kwargs)
-        return Response({"data": response.data}, status=response.status_code)
+        return Response({"distance":distance, "speed":speed, "data": response.data}, status=response.status_code)
 
 
 class CollectibleItemAPIView(viewsets.ReadOnlyModelViewSet):
