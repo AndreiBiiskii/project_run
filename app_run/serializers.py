@@ -28,6 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class AthleteSerializer(serializers.ModelSerializer):
     athlete_data = UserSerializer(read_only=True, source='athlete')
+
     # runs_finished = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -61,9 +62,10 @@ class ChallengeSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f')
     full_distance = serializers.FloatField(read_only=True)
+
     class Meta:
         model = Position
-        fields = '__all__'
+        fields = ['date_time', 'latitude', 'longitude', 'run', 'full_distance']
 
     def validate(self, validated_data):
         if validated_data['run'].status != 'in_progress':
@@ -76,8 +78,6 @@ class PositionSerializer(serializers.ModelSerializer):
                 athlete = User.objects.get(id=validated_data['run'].athlete.id)
                 collectible_items.athlete.add(athlete)
         return validated_data
-
-        return
 
     def validate_latitude(self, value):
         if (value < -90) or (value > 90):
