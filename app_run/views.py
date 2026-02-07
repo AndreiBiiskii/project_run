@@ -233,7 +233,9 @@ class PositionAPIView(viewsets.ModelViewSet):
         qs = self.queryset
         run_id = request.data['run']
         last_position = qs.filter(run=run_id).last()
-        print(last_position)
+        if last_position is None:
+            response = super().create(request, *args, **kwargs)
+            return Response({"data": response.data}, status=response.status_code)
         time_one = last_position.date_time
         time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
             tzinfo=datetime.timezone.utc)
