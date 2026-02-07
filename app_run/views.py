@@ -230,12 +230,11 @@ class PositionAPIView(viewsets.ModelViewSet):
     #         serializer.save(distance=distance, speed=speed)
 
     def create(self, request, *args, **kwargs):
-
-        # Ваша бизнес-логика перед сохранением
-        # result = some_business_logic(request.data)
-        last_position = Position.objects.last()
+        qs = self.queryset
+        run_id = request.data['run']
+        last_position = qs.filter(run=run_id).last()
+        print(last_position)
         time_one = last_position.date_time
-        # time_tow = request.data['date_time']
         time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
             tzinfo=datetime.timezone.utc)
         current_distance = d.distance((last_position.latitude, last_position.longitude),
@@ -247,7 +246,6 @@ class PositionAPIView(viewsets.ModelViewSet):
             request.data['speed']=round(speed_point, 2)
             response = super().create(request, *args, **kwargs)
             return Response({"data": response.data}, status=response.status_code)
-        speed = 0
         response = super().create(request, *args, **kwargs)
         return Response({"data": response.data}, status=response.status_code)
 
