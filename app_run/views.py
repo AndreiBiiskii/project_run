@@ -117,18 +117,20 @@ class StopRunAPIView(APIView):
 
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
-        position = positions.last()
-        time_one = position.date_time
-        time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
-            tzinfo=datetime.timezone.utc)
-        current_distance = d.distance((position.latitude, position.longitude),
-                                      (request.data['latitude'], request.data['longitude'])).km
-        diff_time = abs((time_one - time_tow).total_seconds())
-        # request.data['distance'] = round(current_distance + positions.last().distance, 2)
-        if diff_time != 0:
-            position.speed = (current_distance * 1000) / diff_time
-            position.distance = round(current_distance + positions.last().distance, 2)
-            position.save()
+        if request.GET.get('date_time', None) is not None:
+
+            position = positions.last()
+            time_one = position.date_time
+            time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
+                tzinfo=datetime.timezone.utc)
+            current_distance = d.distance((position.latitude, position.longitude),
+                                          (request.data['latitude'], request.data['longitude'])).km
+            diff_time = abs((time_one - time_tow).total_seconds())
+            # request.data['distance'] = round(current_distance + positions.last().distance, 2)
+            if diff_time != 0:
+                position.speed = (current_distance * 1000) / diff_time
+                position.distance = round(current_distance + positions.last().distance, 2)
+                position.save()
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
 
