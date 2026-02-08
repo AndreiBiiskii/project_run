@@ -45,7 +45,9 @@ class AthleteSerializer(serializers.ModelSerializer):
 
     def get_speed(self, obj):
         speed = Position.objects.filter(run=obj.id).last()
-        return speed.speed
+        if speed is not None:
+            return speed.speed
+        return 0
 
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
