@@ -87,9 +87,9 @@ class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
         queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
-        # if run.status != 'in_progress' or run.status == 'finished':
-        #     return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
-        #                     status=status.HTTP_400_BAD_REQUEST)
+        if run.status != 'in_progress' or run.status == 'finished':
+            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
+                            status=status.HTTP_400_BAD_REQUEST)
         positions = Position.objects.filter(run_id=run.id)
         point_run = []
         for i in positions:
