@@ -86,8 +86,7 @@ class StartRunAPIView(APIView):
 class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
 
-        queryset = Position.objects.all()
-        qs = queryset.filter(run_id=run_id)
+        qs = Position.objects.filter(run_id=run_id)
         last_position = qs.filter(run=run_id).last()
         if request.data.get('date_time', None) is not None:
             time_one = last_position.date_time
@@ -99,29 +98,30 @@ class StopRunAPIView(APIView):
             request.data['distance'] = round(current_distance + last_position.distance, 2)
             if diff_time != 0:
                 request.data['speed'] = (current_distance * 1000) / diff_time
-                request.data['run_id'] = run_id
-                data =  request.data
-                del data['athlete']
-                Position.objects.create(**data)
+            request.data['run_id'] = run_id
+            data = request.data
+            del data['athlete']
+            Position.objects.create(**data)
 
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
                         status=status.HTTP_400_BAD_REQUEST)
+        # positions = Position.objects.filter(run_id=run.id)
+        # if request.data.get('date_time', None) is not None:
+        #     position = positions.last()
+        #     time_one = position.date_time
+        #     time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
+        #         tzinfo=datetime.timezone.utc)
+        #     current_distance = d.distance((position.latitude, position.longitude),
+        #                                   (request.data['latitude'], request.data['longitude'])).km
+        #     diff_time = abs((time_one - time_tow).total_seconds())
+        #     if diff_time != 0:
+        #         position.speed = (current_distance * 1000) / diff_time
+        #     position.distance = round(current_distance + position.distance, 2)
+        #     position.save()
         positions = Position.objects.filter(run_id=run.id)
-        if request.data.get('date_time', None) is not None:
-            position = positions.last()
-            time_one = position.date_time
-            time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
-                tzinfo=datetime.timezone.utc)
-            current_distance = d.distance((position.latitude, position.longitude),
-                                          (request.data['latitude'], request.data['longitude'])).km
-            diff_time = abs((time_one - time_tow).total_seconds())
-            if diff_time != 0:
-                position.speed = (current_distance * 1000) / diff_time
-            position.distance = round(current_distance + position.distance, 2)
-            position.save()
         point_run = []
         for i in positions:
             if len(positions) < 2:
@@ -136,10 +136,10 @@ class StopRunAPIView(APIView):
         if result:
             try:
                 time_difference = (result['max_value'] - result['min_value']).total_seconds()
+                run.run_time_seconds = time_difference
+                run.save()
             except:
                 return Response({'error': 'Забег не успел начаться)'})
-            run.run_time_seconds = time_difference
-            run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
