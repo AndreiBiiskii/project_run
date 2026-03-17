@@ -85,7 +85,11 @@ class StartRunAPIView(APIView):
 
 class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
-
+        queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
+        run = get_object_or_404(queryset, pk=run_id)
+        if run.status != 'in_progress' or run.status == 'finished':
+            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
+                            status=status.HTTP_400_BAD_REQUEST)
         qs = Position.objects.filter(run_id=run_id)
         last_position = qs.filter(run=run_id).last()
         if request.data.get('date_time', None) is not None:
@@ -103,11 +107,6 @@ class StopRunAPIView(APIView):
             del data['athlete']
             Position.objects.create(**data)
 
-        queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
-        run = get_object_or_404(queryset, pk=run_id)
-        if run.status != 'in_progress' or run.status == 'finished':
-            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
-                            status=status.HTTP_400_BAD_REQUEST)
         # positions = Position.objects.filter(run_id=run.id)
         # if request.data.get('date_time', None) is not None:
         #     position = positions.last()
