@@ -85,6 +85,24 @@ class StartRunAPIView(APIView):
 
 class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
+
+        queryset = Position.objects.all()
+        qs = queryset.filter(run_id=run_id)
+        last_position = qs.filter(run=run_id).last()
+        time_one = last_position.date_time
+        time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
+            tzinfo=datetime.timezone.utc)
+        current_distance = d.distance((last_position.latitude, last_position.longitude),
+                                      (request.data['latitude'], request.data['longitude'])).km
+        diff_time = abs((time_one - time_tow).total_seconds())
+        request.data['distance'] = round(current_distance + last_position.distance, 2)
+        if diff_time != 0:
+            request.data['speed'] = (current_distance * 1000) / diff_time
+            request.data['run_id'] = run_id
+            data =  request.data
+            del data['athlete']
+            Position.objects.create(**data)
+
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
         if run.status != 'in_progress' or run.status == 'finished':
@@ -119,8 +137,8 @@ class StopRunAPIView(APIView):
                 time_difference = (result['max_value'] - result['min_value']).total_seconds()
             except:
                 return Response({'error': 'Забег не успел начаться)'})
-            run.run_time_seconds = time_difference
-            run.save()
+        run.run_time_seconds = time_difference
+        run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
@@ -223,19 +241,6 @@ class PositionAPIView(viewsets.ModelViewSet):
         if run_id:
             qs = qs.filter(run_id=run_id)
         return qs
-
-    # def perform_create(self, serializer):
-    #     last_position = Position.objects.last()
-    #     time_one = last_position.date_time
-    #     time_tow = serializer.validated_data['date_time']
-    #     current_distance = d.distance((last_position.latitude, last_position.longitude),
-    #                                   (serializer.validated_data['latitude'], serializer.validated_data['longitude'])).km
-    #     diff_time = (time_one - time_tow).total_seconds()
-    #     if diff_time > 0:
-    #         speed_point = (current_distance * 1000) / diff_time
-    #         distance = round(current_distance + last_position.distance, 2)
-    #         speed = round(speed_point, 2)
-    #         serializer.save(distance=distance, speed=speed)
 
     def create(self, request, *args, **kwargs):
         qs = self.queryset
