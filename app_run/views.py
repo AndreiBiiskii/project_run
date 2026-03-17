@@ -107,7 +107,7 @@ class StopRunAPIView(APIView):
         run = get_object_or_404(queryset, pk=run_id)
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
-                        status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)
         # positions = Position.objects.filter(run_id=run.id)
         # if request.data.get('date_time', None) is not None:
         #     position = positions.last()
@@ -131,15 +131,11 @@ class StopRunAPIView(APIView):
         distance = d.distance(*point_run_tuple).km
         run.distance = distance
         run.status = 'finished'
-        run.save()
         result = positions.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
         if result:
-            try:
-                time_difference = (result['max_value'] - result['min_value']).total_seconds()
-                run.run_time_seconds = time_difference
-                run.save()
-            except:
-                return Response({'error': 'Забег не успел начаться)'})
+            time_difference = (result['max_value'] - result['min_value']).total_seconds()
+            run.run_time_seconds = time_difference
+            run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
@@ -147,7 +143,7 @@ class StopRunAPIView(APIView):
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
         max_speed = positions.filter(speed__gt=0).aggregate(Max('speed'))
-        if max_speed['speed__max'] >= (0.2/60):
+        if max_speed['speed__max'] >= (0.2 / 60):
             Challenge.objects.create(full_name='2 километра за 10 минут!', athlete_id=run.athlete.id)
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
