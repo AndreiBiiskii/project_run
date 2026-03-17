@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class AthleteSerializer(serializers.ModelSerializer):
     athlete_data = UserSerializer(read_only=True, source='athlete')
-    speed = serializers.SerializerMethodField()
+    speed = serializers.FloatField(read_only=True)
 
     # runs_finished = serializers.IntegerField(read_only=True)
 
@@ -43,11 +43,11 @@ class AthleteSerializer(serializers.ModelSerializer):
         status = Run.objects.create(status='init', **validated_data)
         return status
 
-    def get_speed(self, obj):
-        speed = Position.objects.filter(run=obj.id).aggregate(speed=Avg('speed'))
-        if speed is not None:
-            return speed['speed']
-        return 0
+    # def get_speed(self, obj):
+    #     speed = Position.objects.filter(run=obj.id).aggregate(speed=Avg('speed'))
+    #     if speed is not None:
+    #         return speed['speed']
+    #     return 0
 
 
 class AthleteInfoSerializer(serializers.ModelSerializer):

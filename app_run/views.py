@@ -85,12 +85,24 @@ class StartRunAPIView(APIView):
 
 class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
-        queryset = Run.objects.all()
+        queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
-                            status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
         positions = Position.objects.filter(run_id=run.id)
+        if request.data.get('date_time', None) is not None:
+            position = positions.last()
+            time_one = position.date_time
+            time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
+                tzinfo=datetime.timezone.utc)
+            current_distance = d.distance((position.latitude, position.longitude),
+                                          (request.data['latitude'], request.data['longitude'])).km
+            diff_time = abs((time_one - time_tow).total_seconds())
+            if diff_time != 0:
+                position.speed = (current_distance * 1000) / diff_time
+            position.distance = round(current_distance + position.distance, 2)
+            position.save()
         point_run = []
         for i in positions:
             if len(positions) < 2:
@@ -113,24 +125,11 @@ class StopRunAPIView(APIView):
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
         full_distance = Run.objects.filter(athlete_id=run.athlete.id).aggregate(Sum('distance'))
-        print('******', full_distance)
-
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
-        if request.GET.get('date_time', None) is not None:
-
-            position = positions.last()
-            time_one = position.date_time
-            time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
-                tzinfo=datetime.timezone.utc)
-            current_distance = d.distance((position.latitude, position.longitude),
-                                          (request.data['latitude'], request.data['longitude'])).km
-            diff_time = abs((time_one - time_tow).total_seconds())
-            # request.data['distance'] = round(current_distance + positions.last().distance, 2)
-            if diff_time != 0:
-                position.speed = (current_distance * 1000) / diff_time
-                position.distance = round(current_distance + positions.last().distance, 2)
-                position.save()
+        max_speed = positions.filter(speed__gt=0).aggregate(Max('speed'))
+        if max_speed['speed__max'] >= (0.2/60):
+            Challenge.objects.create(full_name='2 километра за 10 минут!', athlete_id=run.athlete.id)
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
 
@@ -254,7 +253,7 @@ class PositionAPIView(viewsets.ModelViewSet):
         request.data['distance'] = round(current_distance + last_position.distance, 2)
         if diff_time != 0:
             speed_point = (current_distance * 1000) / diff_time
-            request.data['speed']=round(speed_point, 2)
+            request.data['speed'] = round(speed_point, 2)
             response = super().create(request, *args, **kwargs)
             return Response({"data": response.data}, status=response.status_code)
         response = super().create(request, *args, **kwargs)
