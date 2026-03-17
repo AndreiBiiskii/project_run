@@ -138,8 +138,8 @@ class StopRunAPIView(APIView):
                 time_difference = (result['max_value'] - result['min_value']).total_seconds()
             except:
                 return Response({'error': 'Забег не успел начаться)'})
-        run.run_time_seconds = time_difference
-        run.save()
+            run.run_time_seconds = time_difference
+            run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
