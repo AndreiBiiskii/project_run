@@ -89,19 +89,20 @@ class StopRunAPIView(APIView):
         queryset = Position.objects.all()
         qs = queryset.filter(run_id=run_id)
         last_position = qs.filter(run=run_id).last()
-        time_one = last_position.date_time
-        time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
-            tzinfo=datetime.timezone.utc)
-        current_distance = d.distance((last_position.latitude, last_position.longitude),
-                                      (request.data['latitude'], request.data['longitude'])).km
-        diff_time = abs((time_one - time_tow).total_seconds())
-        request.data['distance'] = round(current_distance + last_position.distance, 2)
-        if diff_time != 0:
-            request.data['speed'] = (current_distance * 1000) / diff_time
-            request.data['run_id'] = run_id
-            data =  request.data
-            del data['athlete']
-            Position.objects.create(**data)
+        if request.data.get('date_time', None) is not None:
+            time_one = last_position.date_time
+            time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
+                tzinfo=datetime.timezone.utc)
+            current_distance = d.distance((last_position.latitude, last_position.longitude),
+                                          (request.data['latitude'], request.data['longitude'])).km
+            diff_time = abs((time_one - time_tow).total_seconds())
+            request.data['distance'] = round(current_distance + last_position.distance, 2)
+            if diff_time != 0:
+                request.data['speed'] = (current_distance * 1000) / diff_time
+                request.data['run_id'] = run_id
+                data =  request.data
+                del data['athlete']
+                Position.objects.create(**data)
 
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
