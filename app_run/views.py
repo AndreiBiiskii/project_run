@@ -86,22 +86,22 @@ class StartRunAPIView(APIView):
 class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
 
-        # qs = Position.objects.filter(run_id=run_id)
-        # last_position = qs.filter(run=run_id).last()
-        # if request.data.get('date_time', None) is not None:
-        #     time_one = last_position.date_time
-        #     time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
-        #         tzinfo=datetime.timezone.utc)
-        #     current_distance = d.distance((last_position.latitude, last_position.longitude),
-        #                                   (request.data['latitude'], request.data['longitude'])).km
-        #     diff_time = abs((time_one - time_tow).total_seconds())
-        #     request.data['distance'] = round(current_distance + last_position.distance, 2)
-        #     if diff_time != 0:
-        #         request.data['speed'] = (current_distance * 1000) / diff_time
-        #     request.data['run_id'] = run_id
-        #     data = request.data
-        #     del data['athlete']
-        #     Position.objects.create(**data)
+        qs = Position.objects.filter(run_id=run_id)
+        last_position = qs.filter(run=run_id).last()
+        if request.data.get('date_time', None) is not None:
+            time_one = last_position.date_time
+            time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
+                tzinfo=datetime.timezone.utc)
+            current_distance = d.distance((last_position.latitude, last_position.longitude),
+                                          (request.data['latitude'], request.data['longitude'])).km
+            diff_time = abs((time_one - time_tow).total_seconds())
+            request.data['distance'] = round(current_distance + last_position.distance, 2)
+            if diff_time != 0:
+                request.data['speed'] = (current_distance * 1000) / diff_time
+            request.data['run_id'] = run_id
+            data = request.data
+            del data['athlete']
+            Position.objects.create(**data)
 
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
@@ -121,10 +121,9 @@ class StopRunAPIView(APIView):
         #         position.speed = (current_distance * 1000) / diff_time
         #     position.distance = round(current_distance + position.distance, 2)
         #     position.save()
-        positions = Position.objects.filter(run_id=run.id)
         point_run = []
-        for i in positions:
-            if len(positions) < 2:
+        for i in qs:
+            if len(qs) < 2:
                 continue
             point_run.append((i.latitude, i.longitude))
         point_run_tuple = point_run
@@ -132,7 +131,9 @@ class StopRunAPIView(APIView):
         run.distance = distance
         run.status = 'finished'
         run.save()
-        result = positions.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
+        result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
+        for i in result:
+            print(i)
         if result:
             time_difference = (result['max_value'] - result['min_value']).total_seconds()
             run.run_time_seconds = time_difference
@@ -143,7 +144,7 @@ class StopRunAPIView(APIView):
         full_distance = Run.objects.filter(athlete_id=run.athlete.id).aggregate(Sum('distance'))
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
-        max_speed = positions.filter(speed__gt=0).aggregate(Max('speed'))
+        max_speed = qs.filter(speed__gt=0).aggregate(Max('speed'))
         if max_speed['speed__max'] >= (0.2 / 60):
             Challenge.objects.create(full_name='2 километра за 10 минут!', athlete_id=run.athlete.id)
         serializer = AthleteSerializer(run)
