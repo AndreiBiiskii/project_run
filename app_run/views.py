@@ -87,13 +87,14 @@ class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
-        if run.status != 'in_progress' or run.status == 'finished':
-            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
-                            status=status.HTTP_400_BAD_REQUEST)
+        # if run.status != 'in_progress' or run.status == 'finished':
+        #     return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
+        #                     status=status.HTTP_400_BAD_REQUEST)
         qs = Position.objects.filter(run_id=run_id)
         last_position = qs.filter(run=run_id).last()
-        if request.data.get('date_time', None) is not None:
+        if request.data.get('date_time', None) is not None and last_position is not None:
             time_one = last_position.date_time
+            print('/////////////////', time_one)
             time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
                 tzinfo=datetime.timezone.utc)
             current_distance = d.distance((last_position.latitude, last_position.longitude),
@@ -131,9 +132,7 @@ class StopRunAPIView(APIView):
         run.status = 'finished'
         run.save()
         result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
-        for i in result:
-            print(i)
-        if result:
+        if result['max_value'] is not None:
             time_difference = (result['max_value'] - result['min_value']).total_seconds()
             run.run_time_seconds = time_difference
             run.save()
@@ -144,7 +143,7 @@ class StopRunAPIView(APIView):
         if full_distance['distance__sum'] >= 50:
             Challenge.objects.create(full_name='Пробеги 50 километров!', athlete_id=run.athlete.id)
         max_speed = qs.filter(speed__gt=0).aggregate(Max('speed'))
-        if max_speed['speed__max'] >= (0.2 / 60):
+        if max_speed['speed__max'] is not None and max_speed['speed__max'] >= (0.2 / 60):
             Challenge.objects.create(full_name='2 километра за 10 минут!', athlete_id=run.athlete.id)
         serializer = AthleteSerializer(run)
         return Response(serializer.data)
