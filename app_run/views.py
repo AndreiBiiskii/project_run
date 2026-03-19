@@ -87,6 +87,9 @@ class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
 
         qs = Position.objects.filter(run_id=run_id)
+
+
+
         last_position = qs.filter(run=run_id).last()
         if request.data.get('date_time', None) is not None and last_position is not None:
             time_one = last_position.date_time
@@ -105,6 +108,11 @@ class StopRunAPIView(APIView):
 
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
+
+        if run.status != 'in_progress' or run.status == 'finished':
+            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         point_run = []
         for i in qs:
             if len(qs) < 2:
@@ -121,7 +129,8 @@ class StopRunAPIView(APIView):
             time_difference = (result['max_value'] - result['min_value']).total_seconds()
             run.run_time_seconds = time_difference
         except:
-            run.run_time_seconds = 0
+            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
+                            status=status.HTTP_400_BAD_REQUEST)
         run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
