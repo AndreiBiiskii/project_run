@@ -115,7 +115,7 @@ class StopRunAPIView(APIView):
         run.distance = distance
         run.status = 'finished'
         run.save()
-
+        qs = Position.objects.filter(run_id=run_id)
         result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
         try:
             time_difference = (result['max_value'] - result['min_value']).total_seconds()
