@@ -87,9 +87,6 @@ class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
 
         qs = Position.objects.filter(run_id=run_id)
-
-
-
         last_position = qs.filter(run=run_id).last()
         if request.data.get('date_time', None) is not None and last_position is not None:
             time_one = last_position.date_time
@@ -98,20 +95,25 @@ class StopRunAPIView(APIView):
             current_distance = d.distance((last_position.latitude, last_position.longitude),
                                           (request.data['latitude'], request.data['longitude'])).km
             diff_time = abs((time_one - time_tow).total_seconds())
-            request.data['distance'] = round(current_distance + last_position.distance, 2)
+            distance = round(current_distance + last_position.distance, 2)
             if diff_time != 0:
-                request.data['speed'] = (current_distance * 1000) / diff_time
-            request.data['run_id'] = run_id
-            data = request.data
-            del data['athlete']
-            qs.create(**data)
+                speed = (current_distance * 1000) / diff_time
+                request.data['run_id'] = run_id
+                my_data = {
+                    'speed': speed,
+                    'run_id': run_id,
+                    'latitude': request.data['latitude'],
+                    'longitude': request.data['longitude'],
+                    'distance': distance,
+                }
+                qs.create(**my_data)
 
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
 
-        if run.status != 'in_progress' or run.status == 'finished':
-            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
-                            status=status.HTTP_400_BAD_REQUEST)
+        # if run.status != 'in_progress' or run.status == 'finished':
+        #     return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
+        #                     status=status.HTTP_400_BAD_REQUEST)
 
         point_run = []
         for i in qs:
