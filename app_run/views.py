@@ -133,10 +133,12 @@ class StopRunAPIView(APIView):
         run.save()
 
         result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
-        if result['max_value'] is not None and result['min_value'] is not None:
+        try:
             time_difference = (result['max_value'] - result['min_value']).total_seconds()
             run.run_time_seconds = time_difference
-            run.save()
+        except:
+            run.run_time_seconds = 0
+        run.save()
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
             Challenge.objects.create(full_name='Сделай 10 Забегов!', athlete_id=run.athlete.id)
