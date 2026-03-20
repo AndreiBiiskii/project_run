@@ -88,7 +88,7 @@ class StopRunAPIView(APIView):
         qs = Position.objects.filter(run_id=run_id)
         run_id = run_id
         last_position = qs.filter(run=run_id).last()
-        if last_position is not None and request.data['date_time']:
+        if last_position is not None and request.get('date_time', None) is not None:
             time_one = last_position.date_time
             time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
                 tzinfo=datetime.timezone.utc)
