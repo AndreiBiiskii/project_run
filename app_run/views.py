@@ -105,7 +105,7 @@ class StopRunAPIView(APIView):
                     'latitude': request.data['latitude'],
                     'longitude': request.data['longitude'],
                     'distance': distance,
-                    'date_time': request.data.get['date_time']
+                    'date_time': request.data['date_time']
                 }
                 qs.create(**my_data)
 
