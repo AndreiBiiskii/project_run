@@ -87,47 +87,15 @@ class StopRunAPIView(APIView):
     def post(self, request, run_id=None):
 
         qs = Position.objects.filter(run_id=run_id)
-        last_position = qs.filter(run=run_id).last()
-        if request.data.get('date_time', None) is not None and last_position is not None:
-            time_one = last_position.date_time
-            time_tow = datetime.datetime.strptime(request.data['date_time'], '%Y-%m-%dT%H:%M:%S.%f').replace(
-                tzinfo=datetime.timezone.utc)
-            current_distance = d.distance((last_position.latitude, last_position.longitude),
-                                          (request.data['latitude'], request.data['longitude'])).km
-            diff_time = abs((time_one - time_tow).total_seconds())
-            distance = round(current_distance + last_position.distance, 2)
-            if diff_time != 0:
-                speed = (current_distance * 1000) / diff_time
-                request.data['run_id'] = run_id
-                my_data = {
-                    'speed': speed,
-                    'run_id': run_id,
-                    'latitude': request.data['latitude'],
-                    'longitude': request.data['longitude'],
-                    'distance': distance,
-                    'date_time': request.data['date_time']
-                }
-                qs.create(**my_data)
-        if request.data.get('date_time', None) is not None and last_position is None:
-            my_data = {
-                'speed': 0,
-                'run_id': run_id,
-                'latitude': request.data['latitude'],
-                'longitude': request.data['longitude'],
-                'distance': 0,
-                'date_time': request.data['date_time']
-            }
-            qs.create(**my_data)
-        queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
+        queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
-
         if run.status != 'in_progress' or run.status == 'finished':
             return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
                             status=status.HTTP_400_BAD_REQUEST)
-        qs = Position.objects.filter(run_id=run_id)
+        positions = Position.objects.filter(run_id=run.id)
         point_run = []
-        for i in qs:
-            if len(qs) < 2:
+        for i in positions:
+            if len(positions) < 2:
                 continue
             point_run.append((i.latitude, i.longitude))
         point_run_tuple = point_run
@@ -135,6 +103,15 @@ class StopRunAPIView(APIView):
         run.distance = distance
         run.status = 'finished'
         run.save()
+        result = positions.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
+        if result:
+            try:
+                time_difference = (result['max_value'] - result['min_value']).total_seconds()
+            except:
+                return Response({'error': 'Забег не успел начаться)'})
+            run.run_time_seconds = time_difference
+            run.save()
+            print(result['max_value'], '\n', result['min_value'])
 
         result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
         if result:
@@ -144,6 +121,8 @@ class StopRunAPIView(APIView):
                 return Response({'error': 'Забег не успел начаться)'})
             run.run_time_seconds = time_difference
             run.save()
+
+
 
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
