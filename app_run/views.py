@@ -111,18 +111,6 @@ class StopRunAPIView(APIView):
                 return Response({'error': 'Забег не успел начаться)'})
             run.run_time_seconds = time_difference
             run.save()
-            print(result['max_value'], '\n', result['min_value'])
-
-        result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
-        if result:
-            try:
-                time_difference = (result['max_value'] - result['min_value']).total_seconds()
-            except:
-                return Response({'error': 'Забег не успел начаться)'})
-            run.run_time_seconds = time_difference
-            run.save()
-
-
 
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
