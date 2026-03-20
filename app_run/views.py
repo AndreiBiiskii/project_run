@@ -121,9 +121,9 @@ class StopRunAPIView(APIView):
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
 
-        # if run.status != 'in_progress' or run.status == 'finished':
-        #     return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
-        #                     status=status.HTTP_400_BAD_REQUEST)
+        if run.status != 'in_progress' or run.status == 'finished':
+            return Response({'error': 'run not in_progress or finished ', 'current_status': run.status},
+                            status=status.HTTP_400_BAD_REQUEST)
         qs = Position.objects.filter(run_id=run_id)
         point_run = []
         for i in qs:
@@ -137,8 +137,11 @@ class StopRunAPIView(APIView):
         run.save()
 
         result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
-        if result['max_value'] is not None and result['min_value'] is not None:
-            time_difference = (result['max_value'] - result['min_value']).total_seconds()
+        if result:
+            try:
+                time_difference = (result['max_value'] - result['min_value']).total_seconds()
+            except:
+                return Response({'error': 'Забег не успел начаться)'})
             run.run_time_seconds = time_difference
             run.save()
 
