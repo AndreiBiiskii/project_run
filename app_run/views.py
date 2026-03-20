@@ -108,16 +108,16 @@ class StopRunAPIView(APIView):
                     'date_time': request.data['date_time']
                 }
                 qs.create(**my_data)
-        if request.data.get('date_time', None) is not None and last_position is None:
-            my_data = {
-                'speed': 0,
-                'run_id': run_id,
-                'latitude': request.data['latitude'],
-                'longitude': request.data['longitude'],
-                'distance': 0,
-                'date_time': request.data['date_time']
-            }
-            qs.create(**my_data)
+        # if request.data.get('date_time', None) is not None and last_position is None:
+        #     my_data = {
+        #         'speed': 0,
+        #         'run_id': run_id,
+        #         'latitude': request.data['latitude'],
+        #         'longitude': request.data['longitude'],
+        #         'distance': 0,
+        #         'date_time': request.data['date_time']
+        #     }
+        #     qs.create(**my_data)
         queryset = Run.objects.all().annotate(speed=Avg('position__speed'), filter=Q(id=run_id))
         run = get_object_or_404(queryset, pk=run_id)
 
@@ -137,10 +137,10 @@ class StopRunAPIView(APIView):
         run.save()
 
         result = qs.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
-
-        time_difference = (result['max_value'] - result['min_value']).total_seconds()
-        run.run_time_seconds = time_difference
-        run.save()
+        if result['max_value'] is not None and result['min_value'] is not None:
+            time_difference = (result['max_value'] - result['min_value']).total_seconds()
+            run.run_time_seconds = time_difference
+            run.save()
 
         run_count = Run.objects.filter(athlete_id=run.athlete.id, status='finished').count()
         if run_count == 10:
