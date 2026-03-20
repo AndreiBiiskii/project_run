@@ -108,7 +108,6 @@ class StopRunAPIView(APIView):
                     'speed': speed
                 }
                 qs.create(**my_data)
-        qs = Position.objects.filter(run_id=run_id)
         queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
         if run.status != 'in_progress' or run.status == 'finished':
@@ -125,6 +124,7 @@ class StopRunAPIView(APIView):
         run.distance = distance
         run.status = 'finished'
         run.save()
+
         result = positions.filter(run=run_id).aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
         if result:
             try:
