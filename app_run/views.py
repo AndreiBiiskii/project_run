@@ -125,6 +125,7 @@ class StopRunAPIView(APIView):
         run.status = 'finished'
         run.save()
 
+        qs = Position.objects.filter(run_id=run_id)
         result = qs.aggregate(max_value=Max('date_time'), min_value=Min('date_time'))
         if result:
             try:
