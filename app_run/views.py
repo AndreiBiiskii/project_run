@@ -99,17 +99,27 @@ class StopRunAPIView(APIView):
             if diff_time != 0:
                 speed_point = (current_distance * 1000) / diff_time
                 speed = round(speed_point, 2)
+                my_data = {
+                    'latitude': request.data['latitude'],
+                    'longitude': request.data['longitude'],
+                    'run_id': run_id,
+                    'date_time': request.data['date_time'],
+                    'distance': distance,
+                    'speed': speed
+                }
+                qs.create(**my_data)
             else:
                 speed = 0
-            my_data = {
-                'latitude': request.data['latitude'],
-                'longitude': request.data['longitude'],
-                'run_id': run_id,
-                'date_time': request.data['date_time'],
-                'distance': distance,
-                'speed': speed
-            }
-            qs.create(**my_data)
+                my_data = {
+                    'latitude': request.data['latitude'],
+                    'longitude': request.data['longitude'],
+                    'run_id': run_id,
+                    'date_time': request.data['date_time'],
+                    'distance': distance,
+                    'speed': speed
+                }
+                qs.create(**my_data)
+
         queryset = Run.objects.all()
         run = get_object_or_404(queryset, pk=run_id)
         if run.status != 'in_progress' or run.status == 'finished':
